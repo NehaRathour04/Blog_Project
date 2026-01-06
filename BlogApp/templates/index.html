@@ -1,0 +1,90 @@
+{%extends 'layout.html' %}
+
+
+
+{% block navbar_extra %}
+<!-- Right-aligned search and category -->
+<div class="d-flex align-items-center gap-3">
+  <br><br>
+  <!-- Search -->
+  <form class="d-flex" method="GET" action="{% url 'Search' %}">
+    <input class="form-control me-2" type="search" name="query" placeholder="Search...">
+    <button class="btn btn-outline-success" type="submit">Search</button>
+  </form>
+
+  <!-- Category Dropdown -->
+  <div class="dropdown">
+    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+      Category
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      <li><a class="dropdown-item" href="{% url 'Filter' 'All' %}">All</a></li>
+      <li><a class="dropdown-item" href="{% url 'Filter' 'Web Development' %}">Web Development</a></li>
+      <li><a class="dropdown-item" href="{% url 'Filter' 'Mobile App Development' %}">Mobile App Development</a></li>
+      <li><a class="dropdown-item" href="{% url 'Filter' 'Data Science' %}">Data Science</a></li>
+      <li><a class="dropdown-item" href="{% url 'Filter' 'Cybersecurity' %}">Cybersecurity</a></li>
+      <li><a class="dropdown-item" href="{% url 'Filter' 'Blockchain' %}">Blockchain</a></li>
+    </ul>
+  </div>
+</div>
+
+{%endblock%}
+
+{%block content%}
+<h2 class="text-center text-primary ">Blogs  
+   {% if category == "All" %}
+   {%elif category %}
+    - {{ category}}
+    {% else %}
+  {%endif%}
+  </h2>
+   {% if user.is_authenticated %}
+    <div class="d-flex justify-content-center gap-3 my-3">
+      <a href="{% url 'NewBlog' %}" class="btn btn-primary"> Create New Blog</a>
+      <a href="{% url 'UserBlogs'  %}" class="btn btn-outline-primary">My Blogs</a>
+    </div>
+  {% endif %}
+
+  <div class="container my-4">
+  <div class="list-group">
+    {% for post in posts %}
+      <div class="list-group-item list-group-item-action py-3 px-4 rounded-3 shadow-sm mb-3 position-relative"
+           style="cursor: pointer;"
+           onclick="window.location.href='{% url 'Blog' post.id %}';">
+        
+          {% if user == post.author %}
+<!-- Edit button -->
+<button type="button"
+        class="btn btn-sm btn-light text-primary position-absolute top-0 end-0 mt-2 me-5"
+        onclick="event.stopPropagation(); window.location.href='{% url 'EditBlog' post.id %}';">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+    <path d="M12.146.854a.5.5 0 0 1 .708 0l2.292 2.292a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 3L13 4.793 12.207 5.586 10.414 3.793 11.207 3zm1.586-1.586L12.5 1.121 14.879 3.5l.293-.293-2.879-2.879zm-9.69 9.69l-1 2.5 2.5-1L11.5 5.207 9.793 3.5 3.103 10.207z"/>
+  </svg>
+</button>
+
+
+<!-- Delete button -->
+<button type="button"
+        class="btn btn-sm btn-light text-danger position-absolute top-0 end-0 m-2"
+        onclick="event.stopPropagation(); if(confirm('Are you sure you want to delete this post?')) { window.location.href='{% url 'DeleteBlog' post.id %}'; }">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+  <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+</svg>
+</button>
+{% endif %}
+
+        
+        <h5 class="mb-2">{{ post.title }}</h5>
+        <p class="mb-2 text-secondary">{{ post.content|truncatechars:200 }}</p>
+        <p class="mb-2 text-secondary">Category: {{ post.content_type }}</p>
+        <small class="text-primary fw-semibold">By {{ post.author.username }}</small>
+        <small class="text-muted ms-2">{{ post.created_at }}</small>
+      </div>
+    {% empty %}
+      <p class="text-center text-muted py-4">No posts yet</p>
+    {% endfor %}
+  </div>
+</div>
+
+{%endblock%}

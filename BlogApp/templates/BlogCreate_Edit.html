@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-center gap-3 my-3">
+      <a href="{% url 'home' %}" class="btn btn-primary">All Blogs</a>
+      <a href="{% url 'UserBlogs'  %}" class="btn btn-outline-primary">My Blogs</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">{{ operation }} a Blog</h4>
+        </div>
+
+        <div class="card-body">
+            <form id="blogForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+               
+
+                {# Show existing images if editing #}
+                {% if blog and blog.images.all %}
+                    <div class="mb-4">
+                        <label class="form-label">Previously Uploaded Images</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% for img in blog.images.all %}
+                                <div class="border p-2 rounded text-center" style="width:140px;">
+                                    <img src="{{ img.images.url }}" 
+                                         alt="Blog image"
+                                         class="img-thumbnail mb-2"
+                                         style="width:120px; height:100px; object-fit:cover;">
+                                    <div class="form-check">
+                                        <input class="form-check-input existing-image" type="checkbox"
+                                               name="delete_images" value="{{ img.id }}" id="img{{ img.id }}">
+                                        <label class="form-check-label small text-danger" for="img{{ img.id }}">
+                                            Delete
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# Upload new images #}
+                <div class="mb-3">
+                    <label for="id_images" class="form-label">
+                        Upload Images (max 3 in total)
+                    </label>
+                    {{ ImageForm.images }}
+                    {% if ImageForm.images.errors %}
+                        <div class="text-danger small">{{ ImageForm.images.errors }}</div>
+                    {% endif %}
+                    <div id="preview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                </div>
+
+                <button type="submit" class="btn btn-success">{{ operation }}</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const form = document.getElementById("blogForm");
+    const input = document.getElementById("id_images");
+    const preview = document.getElementById("preview");
+
+    // Preview selected new images
+    if (input) {
+        input.addEventListener("change", function() {
+            preview.innerHTML = "";
+            Array.from(this.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = document.createElement("img");
+                    img.src = e.target.result;
+                    img.className = "img-thumbnail";
+                    img.style.width = "120px";
+                    img.style.height = "100px";
+                    img.style.objectFit = "cover";
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
+
+    // Enforce max 3 images in total
+    form.addEventListener("submit", function(e) {
+        const existingCount = document.querySelectorAll(".existing-image").length;
+        const deleteCount = document.querySelectorAll(".existing-image:checked").length;
+        const newCount = input.files.length;
+        const totalAfterSave = (existingCount - deleteCount) + newCount;
+
+        if (totalAfterSave > 3) {
+            e.preventDefault();
+            alert("You can only have a maximum of 3 images in total. Delete some before adding more.");
+        }
+    });
+});
+</script>
+{% endblock %}
